@@ -105,15 +105,16 @@ struct sampleDisneyBXDFOP{
 ///-----------------------------Disney Diffuse Functions Begin -----------------------------///
 
 Spectrum evalDisneyBXDFOP::operator ()(const DisneyDiffuse & disneyBXDF) {
-    if(in.z<0 || out.z<0)
+    if(in.z<0 || out.z<0) //法线的正方向
         return Spectrum(0);
     Vec3d wh = normalize(in+out);
 
     const double roughness = disneyBXDF.roughness;
     const double  subSurfaceFactor =  disneyBXDF.subsurface;
-    const Spectrum  baseColor = disneyBXDF.baseColor / M_PI;
+    const Spectrum  baseColor = disneyBXDF.baseColor / M_PI;  //Lambertian 部分
     
-    double FD90 = 0.5 + 2 * roughness * absDot(wh, in) * absDot(wh, in);
+    //粗糙度高时，在光线靠近表面切线方向照射时会有更强的边缘亮度（Fresnel-like 增亮）
+    double FD90 = 0.5 + 2 * roughness * absDot(wh, in) * absDot(wh, in); //FD90 表示在入射方向与出射方向非常接近 90° 时的反射增强因子
     auto FD = [&](const Vec3d & w) {
         return 1 + ( FD90 - 1 ) * pow(( 1 - AbsCosTheta(w) ), 5);
     };
@@ -238,7 +239,7 @@ BxDFSampleResult sampleDisneyBXDFOP::operator ()(const DisneyClearCoat & disneyB
 
 ///-----------------------------Disney ClearCoat Functions End -----------------------------///
 
-///-----------------------------Disney Glass Functions End -----------------------------///
+///-----------------------------Disney Glass Functions Begin -----------------------------///
 
 Spectrum evalDisneyBXDFOP::operator ()(const DisneyGlass & disneyBXDF) {
 
@@ -319,7 +320,7 @@ BxDFSampleResult sampleDisneyBXDFOP::operator ()(const DisneyGlass & disneyBXDF)
     return result;
 }
 
-///-----------------------------Disney Glass Functions Begin-----------------------------///
+///-----------------------------Disney Glass Functions End-----------------------------///
 
 ///-----------------------------Disney Sheen Functions Begin -----------------------------///
 
